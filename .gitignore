@@ -9,12 +9,16 @@
 *.user
 *.userosscache
 *.sln.docstates
-
+.env
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
 # Mono auto generated files
 mono_crash.*
+
+
+# Firebase config file
+firebase-config.json
 
 # Build results
 [Dd]ebug/
@@ -361,3 +365,48 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+#FLUTTER
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# ===========================
+# FLUTTER / MOBILE KISMI
+# ===========================
+
+**/build/
+**/.dart_tool/
+**/.pub-cache/
+**/.pub/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+**/doc/api/
+**/coverage/
+
+**/ios/Flutter/.last_build_id
+
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+
+app.*.symbols
+app.*.map.json
