@@ -3,6 +3,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using DotNetEnv;
+using StockAccountInfrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,6 @@ var envPath = Path.Combine(solutionRoot ?? "", ".env");
 if (File.Exists(envPath))
 {
     Env.Load(envPath);
-    //Console.WriteLine(".env loaded successfully!");
 }
 else
 {
@@ -30,6 +30,9 @@ else
 
 
 builder.Logging.ClearProviders();
+
+
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
 
@@ -43,8 +46,13 @@ Log.Logger = new LoggerConfiguration()
     )
     .CreateLogger();
 
+builder.Host.UseSerilog();
+
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddControllers();
+
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
