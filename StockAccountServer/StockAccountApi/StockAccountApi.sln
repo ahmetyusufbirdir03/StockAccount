@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
+VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Api", "Api", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
@@ -22,6 +22,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockAccountContracts", "Contracts\StockAccountContracts\StockAccountContracts.csproj", "{458FACC6-E15F-43CC-B265-E12425A02482}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockAccountApplication", "Application\StockAccountApplication\StockAccountApplication.csproj", "{66BD441E-CBAA-4447-9964-2BF9C1DCC015}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{914DEFE3-2334-44AC-8E2A-B91BC2360841}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockAccountApplication.Test", "Test\StockAccountApplication.Test\StockAccountApplication.Test.csproj", "{0027D124-A5ED-4247-8AA8-449AFD2A2774}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +53,10 @@ Global
 		{66BD441E-CBAA-4447-9964-2BF9C1DCC015}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66BD441E-CBAA-4447-9964-2BF9C1DCC015}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66BD441E-CBAA-4447-9964-2BF9C1DCC015}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0027D124-A5ED-4247-8AA8-449AFD2A2774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0027D124-A5ED-4247-8AA8-449AFD2A2774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0027D124-A5ED-4247-8AA8-449AFD2A2774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0027D124-A5ED-4247-8AA8-449AFD2A2774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,6 +67,7 @@ Global
 		{9F56CADB-83E9-40DC-8A3A-1BE3731BFFF8} = {C09BADF9-F632-40A3-8260-D9B7DD3C0B1F}
 		{458FACC6-E15F-43CC-B265-E12425A02482} = {F8A0F2F6-4821-446D-84B3-B4AAC80FEFBA}
 		{66BD441E-CBAA-4447-9964-2BF9C1DCC015} = {7B51B458-2E76-439E-A68F-5529B5D39C5E}
+		{0027D124-A5ED-4247-8AA8-449AFD2A2774} = {914DEFE3-2334-44AC-8E2A-B91BC2360841}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F733E4F5-E107-417F-95F5-497C94C04A47}
