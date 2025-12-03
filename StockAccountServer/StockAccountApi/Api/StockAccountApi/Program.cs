@@ -4,6 +4,8 @@ using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using DotNetEnv;
 using StockAccountInfrastructure;
+using StockAccountApplication;
+using StockAccountContracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,9 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication(builder.Configuration);
+builder.Services.AddContracts(builder.Configuration);
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

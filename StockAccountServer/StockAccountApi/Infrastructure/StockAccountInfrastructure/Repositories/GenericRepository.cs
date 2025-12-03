@@ -102,4 +102,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, new()
         _dbSet.RemoveRange(entities);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<T?> GetAsync(
+    Expression<Func<T, bool>> predicate,
+    params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet; 
+
+        if (includes != null && includes.Length > 0)
+        {
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+        }
+        return await query.FirstOrDefaultAsync(predicate);
+    }
+
 }

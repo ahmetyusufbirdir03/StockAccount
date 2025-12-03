@@ -19,10 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\Application\StockAccountApplication\StockAccountApplication.csproj" />
     <ProjectReference Include="..\..\Infrastructure\StockAccountInfrastructure\StockAccountInfrastructure.csproj" />
   </ItemGroup>
 
