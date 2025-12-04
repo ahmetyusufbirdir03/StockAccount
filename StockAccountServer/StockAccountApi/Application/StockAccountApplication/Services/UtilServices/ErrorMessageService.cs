@@ -6,7 +6,7 @@ public static class ErrorMessageService
     public static string InternalServerError500 => "An unexpected error occurred on the server";
     public static string BadRequest400 => "The request could not be understood or was missing required parameters";
     public static string Unauthorized401 => "Authentication is required and has failed or has not yet been provided";
-    public static string RestrictedAccess => "You do not have permission to access this resource";
+    public static string RestrictedAccess401 => "You do not have permission to access this resource";
 
     // AUTH/TOKEN MESSAGES
     public static string TokenNotFound404 => "Authentication token not found";
@@ -24,5 +24,11 @@ public static class ErrorMessageService
     public static string EmailAlreadyRegistered409 => "Email address is already registered";
     public static string EmailNotFound404 => "Email address not found";
 
-    
+    // COMPANY MESSAGES
+    public static string CompanyNotFound404 => "Company not found";
+    public static string MaxCompanyLimitReached400 => "A user can create a maximum of 3 companies";
+
+    public static string CompanyNameAlredyRegistered409 => "Company name is already registered";
+
+
 }

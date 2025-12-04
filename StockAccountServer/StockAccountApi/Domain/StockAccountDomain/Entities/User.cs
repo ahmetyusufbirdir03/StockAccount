@@ -11,4 +11,8 @@ public class User : IdentityUser<Guid>
     public DateTime? RefreshTokenExpiryTime { get; set; }
     public ICollection<Company> Companies { get; set; } = new List<Company>();
 
+
+    // Soft delete properties
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 }
