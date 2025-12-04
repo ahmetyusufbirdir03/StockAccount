@@ -6,16 +6,31 @@ namespace StockAccountApplication.Test;
 
 public static class TestDataFactory
 {
-    public static User CreateTestUser(string name = "Test", string surname="User" , string email = "test@mail.com", string phoneNumber = "00000000001")
+    public static User CreateTestUser(
+        Guid? id = null, 
+        string name = "Test", string surname="User" , 
+        string email = "test@mail.com", 
+        string phoneNumber = "00000000001")
     {
         return new User
         {
-            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Id = id ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
             Name = name,
             Surname = surname,
             Email = email,
             PhoneNumber = phoneNumber,
         };
+    }
+
+    public static User CreateAdminUser()
+    {
+        return CreateTestUser(
+            name: "System",
+            surname: "Admin",
+            email: "admin@system.com",
+            phoneNumber: "99999999999",
+            id: Guid.Parse("22222222-2222-2222-2222-222222222222")
+        );
     }
 
     public static JwtSecurityToken CreateTestJwtToken()
@@ -30,5 +45,22 @@ public static class TestDataFactory
     public static string CreateTestRefreshToken()
     {
         return "mock_refresh_token_xyz_123";
+    }
+
+    public static Company CreateTestCompany(
+        Guid? id = null,
+        string companyName = "Test", 
+        string address = "Comapny",
+        string email = "test@mail.com",
+        string phoneNumber = "00000000001")
+    {
+        return new Company
+        {
+            Id = id ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            CompanyName = companyName,
+            Address = address,
+            Email = email,
+            PhoneNumber = phoneNumber,
+        };
     }
 }

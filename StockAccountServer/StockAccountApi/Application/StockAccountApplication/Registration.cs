@@ -43,6 +43,7 @@ public static class Registration
         services.AddTransient<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICompanyService, CompanyService>();
 
 
 

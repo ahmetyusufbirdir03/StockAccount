@@ -27,6 +27,7 @@ public abstract class ServiceTestBase
 
     // FAKE SEED DATA
     protected User TestUser { get; private set; }
+    protected Company TestCompany { get; private set; }
     protected JwtSecurityToken TestJwtToken { get; private set; }
     protected string TestRefreshToken { get; private set; }
 
@@ -45,6 +46,7 @@ public abstract class ServiceTestBase
 
 
         TestUser = TestDataFactory.CreateTestUser();
+        TestCompany = TestDataFactory.CreateTestCompany();
         TestJwtToken = TestDataFactory.CreateTestJwtToken();
         TestRefreshToken = TestDataFactory.CreateTestRefreshToken();
 
@@ -77,16 +79,16 @@ public abstract class ServiceTestBase
             .Returns("1"); 
     }
 
-    protected void SetupAuthenticatedUser(Guid userId, string role = "user")
+    protected void SetupAuthenticatedUser(string role = "user", string userName ="TestUser")
     {
-        if(userId == Guid.Empty)
-            userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.Email, "test@mail.com")
+            new Claim(ClaimTypes.Email, "test@mail.com"),
+            new Claim(ClaimTypes.Name, userName ?? "")
         };
 
         var identity = new ClaimsIdentity(claims, "TestAuthType");
