@@ -28,6 +28,7 @@ public abstract class ServiceTestBase
     // FAKE SEED DATA
     protected User TestUser { get; private set; }
     protected Company TestCompany { get; private set; }
+    protected Stock TestStock { get; private set; }
     protected JwtSecurityToken TestJwtToken { get; private set; }
     protected string TestRefreshToken { get; private set; }
 
@@ -47,6 +48,7 @@ public abstract class ServiceTestBase
 
         TestUser = TestDataFactory.CreateTestUser();
         TestCompany = TestDataFactory.CreateTestCompany();
+        TestStock = TestDataFactory.CreateTestStock();  
         TestJwtToken = TestDataFactory.CreateTestJwtToken();
         TestRefreshToken = TestDataFactory.CreateTestRefreshToken();
 
