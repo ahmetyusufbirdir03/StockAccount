@@ -44,6 +44,7 @@ public static class Registration
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<IStockService, StockService>();
 
 
 

@@ -52,20 +52,19 @@ public class CompanyService : ICompanyService
         }
 
         //Email conflict check
-        var nameConflict = await _unitOfWork.GetGenericRepository<Company>().GetAllAsync(
-            predicate: c => c.CompanyName == request.CompanyName && c.DeletedAt == null);
-        if (nameConflict.Any())
-        {
-            return ResponseDto<CompanyResponseDto>.Fail(ErrorMessageService.CompanyNameAlredyRegistered409, 409);
-        }
-
-
-        //Email conflict check
         var emailConflict = await _unitOfWork.GetGenericRepository<Company>().GetAllAsync(
             predicate: c => c.Email == request.Email && c.DeletedAt == null);
         if (emailConflict.Any())
         {
             return ResponseDto<CompanyResponseDto>.Fail(ErrorMessageService.EmailAlreadyRegistered409, 409);
+        }
+
+        //Name conflict check
+        var nameConflict = await _unitOfWork.GetGenericRepository<Company>().GetAllAsync(
+            predicate: c => c.CompanyName == request.CompanyName && c.DeletedAt == null);
+        if (nameConflict.Any())
+        {
+            return ResponseDto<CompanyResponseDto>.Fail(ErrorMessageService.CompanyNameAlredyRegistered409, 409);
         }
 
         //Phone number conflict check
@@ -134,7 +133,7 @@ public class CompanyService : ICompanyService
         if (currentUserId == null || currentUserId != user.Id.ToString())
         {
             return ResponseDto<IList<CompanyResponseDto>>
-                .Fail(ErrorMessageService.RestrictedAccess401, StatusCodes.Status401Unauthorized);
+                .Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden);
         }
 
         if(user.Companies == null || !user.Companies.Any())
@@ -173,7 +172,7 @@ public class CompanyService : ICompanyService
         if (currentUserId == null || currentUserId != user.Id.ToString())
         {
             return ResponseDto<CompanyResponseDto>
-                .Fail(ErrorMessageService.RestrictedAccess401, StatusCodes.Status401Unauthorized);
+                .Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden);
         }
 
         company = _mapper.Map(request, company);

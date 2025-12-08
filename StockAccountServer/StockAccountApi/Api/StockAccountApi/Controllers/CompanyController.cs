@@ -19,9 +19,20 @@ public class CompanyController : ControllerBase
 
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<IActionResult> GetAllCompanies()
     {
         var result = await _companyService.GetAllCompanies();
+        if (!result.IsSuccess)
+        {
+            return StatusCode(result.StatusCode, result);
+        }
+        return Ok(result);
+    }
+
+    [HttpGet("GetUserCompanies/{userId}")]
+    public async Task<IActionResult> GetUsersCompanies(Guid userId)
+    {
+        var result = await _companyService.GetUserCompanies(userId);
         if (!result.IsSuccess)
         {
             return StatusCode(result.StatusCode, result);

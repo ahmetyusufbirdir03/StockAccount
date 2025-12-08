@@ -1,5 +1,5 @@
-﻿using StockAccountContracts.Dtos.Auth.Register;
-using StockAccountDomain.Entities;
+﻿using StockAccountDomain.Entities;
+using StockAccountDomain.Enums;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace StockAccountApplication.Test;
@@ -56,11 +56,31 @@ public static class TestDataFactory
     {
         return new Company
         {
-            Id = id ?? Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Id = id ?? Guid.NewGuid(),
             CompanyName = companyName,
             Address = address,
             Email = email,
             PhoneNumber = phoneNumber,
+            DeletedAt = DateTime.Now.AddHours(1)
+        };
+    }
+
+    public static Stock CreateTestStock(
+        Guid? id = null,
+        string name = "TestStock",
+        int quantity = 5,
+        UnitEnum unit = UnitEnum.Ton,
+        decimal price = 10.2m,
+        string description = "TestStock")
+    {
+        return new Stock
+        {
+            Id = id ?? Guid.NewGuid(),
+            Name = name,
+            Quantity = quantity,
+            Unit = unit,
+            Price = price,
+            Description = description,
         };
     }
 }

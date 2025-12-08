@@ -232,7 +232,8 @@ public class CompanyServiceTests : ServiceTestBase
         // Arrange
         var companyId = Guid.NewGuid();
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(companyId))
+            .Setup(u => u.GetGenericRepository<Company>()
+                .GetAsync(It.IsAny<Expression<Func<Company, bool>>>()))
             .ReturnsAsync(TestCompany);
 
         UnitOfWorkMock
@@ -247,7 +248,7 @@ public class CompanyServiceTests : ServiceTestBase
         // Assert
         result.Should().BeEquivalentTo(ResponseDto<NoContentDto>.Success(204));
         TestCompany.DeletedAt.Should().NotBeNull();
-        TestCompany.DeletedBy.Should().Be("TestUser");
+        TestCompany.DeletedBy.Should().Be("test@mail.com");
     }
 
 
@@ -364,7 +365,7 @@ public class CompanyServiceTests : ServiceTestBase
         var result = await _companyService.GetUserCompanies(userId);
 
         // Assert
-        result.Should().BeEquivalentTo(ResponseDto<IList<CompanyResponseDto>>.Fail(ErrorMessageService.RestrictedAccess401, StatusCodes.Status401Unauthorized));
+        result.Should().BeEquivalentTo(ResponseDto<IList<CompanyResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden));
     }
 
     [Fact]
@@ -441,7 +442,7 @@ public class CompanyServiceTests : ServiceTestBase
     {
         // Arrange
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id))
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id,null))
             .ReturnsAsync((Company?)null);
 
         // Act
@@ -502,8 +503,8 @@ public class CompanyServiceTests : ServiceTestBase
         // Assert
         result.Should().BeEquivalentTo(
             ResponseDto<CompanyResponseDto>.Fail(
-                ErrorMessageService.RestrictedAccess401,
-                StatusCodes.Status401Unauthorized
+                ErrorMessageService.RestrictedAccess403,
+                StatusCodes.Status403Forbidden
             )
         );
     }
@@ -519,7 +520,11 @@ public class CompanyServiceTests : ServiceTestBase
 
         UnitOfWorkMock
             .Setup(u => u.GetGenericRepository<User>()
-            .GetByIdAsync(TestCompany.UserId, It.IsAny<Expression<Func<User, object>>[]>()))
+            .GetByIdAsync(
+                    TestCompany.UserId, 
+                    It.IsAny<Expression<Func<User, object>>[]>()
+                )
+            )
             .ReturnsAsync(TestUser);
 
         var principal = new ClaimsPrincipal(new ClaimsIdentity(new[]

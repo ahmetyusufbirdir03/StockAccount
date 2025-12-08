@@ -19,7 +19,8 @@ public class UserServiceTests : ServiceTestBase
             HttpContextAccessorMock.Object,
             UnitOfWorkMock.Object,
             MapperMock.Object,
-            UserManagerMock.Object
+            UserManagerMock.Object,
+            ValidationServiceMock.Object
         );
     }
 
@@ -56,8 +57,8 @@ public class UserServiceTests : ServiceTestBase
 
         var userDtoList = new List<UserResponseDto>
         {
-            new UserResponseDto { FirstName = "User1", Email = "u1@test.com" },
-            new UserResponseDto { FirstName = "User2", Email = "u2@test.com" }
+            new UserResponseDto { Name = "User1", Email = "u1@test.com" },
+            new UserResponseDto { Name = "User2", Email = "u2@test.com" }
         };
 
         SetupAuthenticatedUser(role: "admin");
@@ -129,10 +130,31 @@ public class UserServiceTests : ServiceTestBase
 
     //DELETE USER TESTS
     [Fact]
+    public async Task DeleteUser_ShouldReturnUnauthorized_WhenSystemUserNotAdmin()
+    {
+        // Arrange
+        var userId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+
+        SetupAuthenticatedUser(role: "user");
+
+        var expectedResponse = ResponseDto<NoContentDto>
+            .Fail(ErrorMessageService.Unauthorized401, 401);
+
+        // Act
+        var result = await _userService.DeleteUserAsync(userId);
+
+        // Assert
+        result.Should().BeEquivalentTo(expectedResponse);
+    }
+
+
+    [Fact]
     public async Task DeleteUser_ShouldReturnNotFound_WhenUserDoesNotExist()
     {
         // Arrange
         var userId = Guid.Parse("55555555-5555-5555-5555-555555555555");
+
+        SetupAuthenticatedUser(role: "admin");
 
         UnitOfWorkMock
             .Setup(u => u.GetGenericRepository<User>()
@@ -155,6 +177,8 @@ public class UserServiceTests : ServiceTestBase
         // Arrange
         var userId = TestUser.Id;
         var userList = new List<User> { TestUser };
+
+        SetupAuthenticatedUser(role: "admin");
 
         UnitOfWorkMock
             .Setup(u => u.GetGenericRepository<User>()

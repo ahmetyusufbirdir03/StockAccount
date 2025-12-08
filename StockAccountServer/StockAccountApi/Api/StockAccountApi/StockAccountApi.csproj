@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Application\StockAccountApplication\StockAccountApplication.csproj" />
+    <ProjectReference Include="..\..\Contracts\StockAccountContracts\StockAccountContracts.csproj" />
     <ProjectReference Include="..\..\Infrastructure\StockAccountInfrastructure\StockAccountInfrastructure.csproj" />
   </ItemGroup>
 
