@@ -4,7 +4,6 @@ using Moq;
 using StockAccountApplication.Services;
 using StockAccountApplication.Services.UtilServices;
 using StockAccountContracts.Dtos;
-using StockAccountContracts.Dtos.Company;
 using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.Stock.Create;
 using StockAccountContracts.Dtos.Stock.Update;
@@ -31,8 +30,6 @@ public class StockServiceTest : ServiceTestBase
     private readonly UpdateStockRequestDto updateStockRequestDto = new()
     {
         Id = Guid.NewGuid(),
-        Quantity = 150,
-        Price = 55.0m,
         Name = "Updated Test Stock",
         Description = "Updated Test Description"
     };
