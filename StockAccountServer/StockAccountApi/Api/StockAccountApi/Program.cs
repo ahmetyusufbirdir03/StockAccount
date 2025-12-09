@@ -46,6 +46,7 @@ Log.Logger = new LoggerConfiguration()
         theme: AnsiConsoleTheme.Code,
         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} <{SourceContext}>{NewLine}{Exception}"
     )
+    .WriteTo.Debug()
     .CreateLogger();
 
 builder.Host.UseSerilog();

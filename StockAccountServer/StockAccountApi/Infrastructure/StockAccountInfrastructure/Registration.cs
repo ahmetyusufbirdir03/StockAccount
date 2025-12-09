@@ -6,6 +6,7 @@ using StockAccountApplication.Repositories;
 using StockAccountContracts.Interfaces;
 using StockAccountContracts.Interfaces.Repositories;
 using StockAccountDomain.Entities;
+using StockAccountDomain.Respositories;
 using StockAccountInfrastructure.Context;
 using StockAccountInfrastructure.Repositories;
 
@@ -21,6 +22,7 @@ public static class Registration
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
         services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
+        services.AddScoped(typeof(IStockTransRepository), typeof(StockTransRepository));
         services.AddHttpContextAccessor();
 
         services.AddDataProtection();

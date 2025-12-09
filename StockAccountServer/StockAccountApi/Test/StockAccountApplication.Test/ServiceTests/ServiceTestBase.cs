@@ -7,6 +7,7 @@ using StockAccountContracts.Interfaces;
 using StockAccountContracts.Interfaces.Repositories;
 using StockAccountContracts.Interfaces.Services;
 using StockAccountDomain.Entities;
+using StockAccountDomain.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -24,11 +25,13 @@ public abstract class ServiceTestBase
     protected Mock<IConfiguration> ConfigurationMock { get; }
     protected Mock<IUserRepository> UserRepositoryMock { get; }
     protected Mock<IHttpContextAccessor> HttpContextAccessorMock { get; }
+    protected Mock<IStockTransDomainService> StockTransDomainServiceMock { get; }
 
     // FAKE SEED DATA
     protected User TestUser { get; private set; }
     protected Company TestCompany { get; private set; }
     protected Stock TestStock { get; private set; }
+    protected StockTrans TestStockTrans { get; private set; }
     protected JwtSecurityToken TestJwtToken { get; private set; }
     protected string TestRefreshToken { get; private set; }
 
@@ -41,6 +44,7 @@ public abstract class ServiceTestBase
         ConfigurationMock = new Mock<IConfiguration>();
         UserRepositoryMock = new Mock<IUserRepository>();
         HttpContextAccessorMock = new Mock<IHttpContextAccessor>();
+        StockTransDomainServiceMock = new Mock<IStockTransDomainService>();
 
         UserManagerMock = MockUserManager();
         RoleManagerMock = MockRoleManager();
@@ -48,7 +52,8 @@ public abstract class ServiceTestBase
 
         TestUser = TestDataFactory.CreateTestUser();
         TestCompany = TestDataFactory.CreateTestCompany();
-        TestStock = TestDataFactory.CreateTestStock();  
+        TestStock = TestDataFactory.CreateTestStock();
+        TestStockTrans = TestDataFactory.CreateTestStockTrans();
         TestJwtToken = TestDataFactory.CreateTestJwtToken();
         TestRefreshToken = TestDataFactory.CreateTestRefreshToken();
 
