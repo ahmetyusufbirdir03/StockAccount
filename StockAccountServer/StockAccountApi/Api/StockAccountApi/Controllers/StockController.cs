@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockAccountContracts.Dtos.Stock.Create;
+using StockAccountContracts.Dtos.Stock.QuantityUpdate;
 using StockAccountContracts.Dtos.Stock.Update;
 using StockAccountContracts.Interfaces.Services;
 
@@ -83,6 +84,16 @@ namespace StockAccountApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("UpdateQuantity")]
+        public async Task<IActionResult> UpdateStockQuantity(QuantityRequestDto request)
+        {
+            var result = await _stockService.UpdateStockQuantityAsync(request);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result);
+            }
+            return Ok(result);
+        }
 
     }
 }

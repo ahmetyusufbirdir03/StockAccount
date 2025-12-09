@@ -28,9 +28,12 @@ public static class ErrorMessageService
     public static string CompanyNotFound404 => "Company not found";
     public static string MaxCompanyLimitReached400 => "A user can create a maximum of 3 companies";
     public static string CompanyNameAlredyRegistered409 => "Company name is already registered";
+    public static string CountercompanyNotFound404 => "Counter company not found";
 
     //STOCK MESSAGES
     public static string StockNotFound404 => "Stock not found";
     public static string MaxStockLimitReached400 => "A user can create a maximum of 10 stocks";
     public static string StockNameAlredyRegistered409 => "Stock name is already registered";
+    
+    public static string InsufficientStockQuantity400 => "Insufficient stock quantity for the sale transaction";
 }

@@ -3,9 +3,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StockAccountApplication.Services;
+using StockAccountApplication.Services.DomainServices;
 using StockAccountApplication.Services.UtilServices;
 using StockAccountApplication.Services.UtilServices.TokenServices;
 using StockAccountContracts.Interfaces.Services;
+using StockAccountDomain.Services;
 using System.Text;
 
 namespace StockAccountApplication;
@@ -45,6 +47,8 @@ public static class Registration
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IStockService, StockService>();
+        services.AddScoped<IStockTransService, StockTransService>();
+        services.AddScoped<IStockTransDomainService, StockTransDomainService>();
 
 
 

@@ -83,4 +83,24 @@ public static class TestDataFactory
             Description = description,
         };
     }
+
+    public static StockTrans CreateTestStockTrans(
+        int quantity = 5,
+        StockTransTypeEnum type = StockTransTypeEnum.In,
+        decimal unitPrice = 10.2m,
+        string description = "TestStock")
+    {
+        return new StockTrans
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = Guid.NewGuid(),
+            StockId = Guid.NewGuid(),
+            CounterpartyCompanyId = Guid.NewGuid(),
+            Quantity = quantity,
+            Type = type,
+            UnitPrice = unitPrice,
+            TotalPrice = quantity * unitPrice,
+        };
+    }
+
 }

@@ -1,6 +1,7 @@
 ﻿using StockAccountContracts.Dtos;
 using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.Stock.Create;
+using StockAccountContracts.Dtos.Stock.QuantityUpdate;
 using StockAccountContracts.Dtos.Stock.Update;
 
 namespace StockAccountContracts.Interfaces.Services;
@@ -49,4 +50,11 @@ public interface IStockService
     /// <returns></returns>
     Task<ResponseDto<StockResponseDto>> 
         UpdateStockAsync(UpdateStockRequestDto Request);
+
+    /// <summary>
+    ///     Update quantity of stock which is given in request.
+    /// </summary>
+    /// <param name="Request"></param>
+    /// <returns></returns>
+    Task<ResponseDto<StockResponseDto>> UpdateStockQuantityAsync(QuantityRequestDto Request);
 }

@@ -4,11 +4,14 @@ using StockAccountApplication.Services.UtilServices;
 using StockAccountContracts.Dtos;
 using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.Stock.Create;
+using StockAccountContracts.Dtos.Stock.QuantityUpdate;
 using StockAccountContracts.Dtos.Stock.Update;
 using StockAccountContracts.Interfaces;
 using StockAccountContracts.Interfaces.Services;
 using StockAccountDomain.Entities;
-using System.ComponentModel.Design;
+using StockAccountDomain.Enums;
+using StockAccountDomain.Models;
+using StockAccountDomain.Services;
 using System.Security.Claims;
 
 namespace StockAccountApplication.Services;
@@ -18,18 +21,21 @@ public class StockService : IStockService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IValidationService _validationService;
     private readonly IMapper _mapper;
-    public readonly IUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IStockTransDomainService _stockTransDomainService;
 
     public StockService(
-        IHttpContextAccessor httpContextAccessor, 
-        IValidationService validationService, 
-        IMapper mapper, 
-        IUnitOfWork unitOfWork)
+        IHttpContextAccessor httpContextAccessor,
+        IValidationService validationService,
+        IMapper mapper,
+        IUnitOfWork unitOfWork,
+        IStockTransDomainService stockTransDomainService)
     {
         _httpContextAccessor = httpContextAccessor;
         _validationService = validationService;
         _mapper = mapper;
         _unitOfWork = unitOfWork;
+        _stockTransDomainService = stockTransDomainService;
     }
     public async Task<ResponseDto<StockResponseDto>> CreateStockAsync(CreateStockRequestDto Request)
     {
@@ -212,6 +218,50 @@ public class StockService : IStockService
         await _unitOfWork.GetGenericRepository<Stock>().UpdateAsync(updatedStock);
 
         return ResponseDto<StockResponseDto>.Success(response,StatusCodes.Status200OK);
+    }
+
+    public async Task<ResponseDto<StockResponseDto>> UpdateStockQuantityAsync(QuantityRequestDto Request)
+    {
+        var validationError = await _validationService.ValidateAsync<QuantityRequestDto, StockResponseDto>(Request);
+        if (validationError != null)
+            return validationError;
+
+        var stock = await _unitOfWork.GetGenericRepository<Stock>().GetByIdAsync(Request.StockId);
+        if(stock == null || stock.DeletedAt != null)
+        {
+            return ResponseDto<StockResponseDto>.Fail(ErrorMessageService.StockNotFound404, StatusCodes.Status404NotFound);
+        }
+
+        if (Request.IsAddition)
+        {
+            stock.Quantity += Request.Amount;
+        }
+        else { 
+            if(stock.Quantity < Request.Amount)
+            {
+                return ResponseDto<StockResponseDto>.Fail(ErrorMessageService.InsufficientStockQuantity400,StatusCodes.Status400BadRequest);
+            }
+            stock.Quantity -= Request.Amount;
+        }
+
+  
+        var model = new StockTransModel
+        {
+            CompanyId = stock.CompanyId,
+            StockId = stock.Id,
+            Quantity = Request.Amount,
+            UnitPrice = stock.Price,
+            Type = Request.IsAddition ? StockTransTypeEnum.In : StockTransTypeEnum.Out,
+            TotalPrice = Request.Amount * stock.Price
+        };
+
+        await _stockTransDomainService.CreateStockTransAsync(model);
+
+        await _unitOfWork.GetGenericRepository<Stock>().UpdateAsync(stock);
+
+        var stockResponse = _mapper.Map<StockResponseDto>(stock);
+
+        return ResponseDto<StockResponseDto>.Success(stockResponse, StatusCodes.Status200OK);
     }
 }
         

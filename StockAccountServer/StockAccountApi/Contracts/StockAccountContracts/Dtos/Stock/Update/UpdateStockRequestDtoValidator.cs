@@ -14,12 +14,6 @@ public class UpdateStockRequestDtoValidator : AbstractValidator<UpdateStockReque
             .MaximumLength(100).WithMessage("Ürün adý en fazla 100 karakter olabilir.")
             .When(x => !string.IsNullOrWhiteSpace(x.Name));
 
-        RuleFor(x => x.Quantity)
-            .GreaterThanOrEqualTo(0m).WithMessage("Miktar 0 veya daha büyük olmalýdýr.");
-
-        RuleFor(x => x.Price)
-            .GreaterThanOrEqualTo(0m).WithMessage("Fiyat negatif olamaz.");
-
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("Açýklama en fazla 500 karakter olabilir.")
             .When(x => !string.IsNullOrWhiteSpace(x.Description));

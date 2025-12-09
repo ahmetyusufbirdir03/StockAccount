@@ -27,13 +27,16 @@ public class StockTransConfiguration : IEntityTypeConfiguration<StockTrans>
             .HasColumnType("decimal(18,2)")
             .IsRequired();
 
-        builder.Property(st => st.Description)
-            .HasMaxLength(500);
-
         builder.HasOne(st => st.Company)
             .WithMany(c => c.StockTransactions)
             .HasForeignKey(st => st.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(st => st.CounterpartyCompany)
+            .WithMany() 
+            .HasForeignKey(st => st.CounterpartyCompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
 
         builder.HasOne(st => st.Stock)
             .WithMany(s => s.StockTransactions)
