@@ -5,10 +5,10 @@ using StockAccountContracts.Dtos.Company.Create;
 using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.Stock.Create;
 using StockAccountContracts.Dtos.Stock.Update;
+using StockAccountContracts.Dtos.StockTrans;
 using StockAccountContracts.Dtos.StockTrans.Create;
 using StockAccountContracts.Dtos.User;
 using StockAccountDomain.Entities;
-using StockAccountDomain.Models;
 
 namespace StockAccountApplication;
 
@@ -24,5 +24,6 @@ public class MappingProfile : Profile
         CreateMap<CreateStockRequestDto, Stock>();
         CreateMap<UpdateStockRequestDto, Stock>();
         CreateMap<CreateStockTransRequestDto, StockTrans>();
+        CreateMap<StockTrans, StockTransResponseDto>();
     }
 }

@@ -7,6 +7,7 @@ public static class ErrorMessageService
     public static string BadRequest400 => "The request could not be understood or was missing required parameters";
     public static string Unauthorized401 => "Authentication is required and has failed or has not yet been provided";
     public static string RestrictedAccess403 => "You do not have permission to access this resource";
+    public static string NoValueFoundToUpdate400 => "There is no value found to update";
 
     // AUTH/TOKEN MESSAGES
     public static string TokenNotFound404 => "Authentication token not found";
@@ -34,6 +35,8 @@ public static class ErrorMessageService
     public static string StockNotFound404 => "Stock not found";
     public static string MaxStockLimitReached400 => "A user can create a maximum of 10 stocks";
     public static string StockNameAlredyRegistered409 => "Stock name is already registered";
-    
     public static string InsufficientStockQuantity400 => "Insufficient stock quantity for the sale transaction";
+
+    //STOCK TRANS MESSAGE
+    public static string StockTransNotFound404 => "Stock trans not found";
 }

@@ -382,4 +382,174 @@ public class StockTransServiceTests : ServiceTestBase
 
         UnitOfWorkMock.Verify(u => u.GetGenericRepository<StockTrans>().CreateAsync(mappedStockTrans), Times.Once);
     }
+
+
+    // Delete Stock Transaction Test
+    [Fact]
+    public async Task DeleteStockTransAsync_ShouldReturnNotFound_WhenStockTransNotExist()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<StockTrans>().GetByIdAsync(TestStockTrans.Id))
+            .ReturnsAsync(null as StockTrans);
+
+        // Act
+        var result = await _stockTransService.DeleteStockTransactionAsync(TestStockTrans.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<NoContentDto>.Fail(ErrorMessageService.StockTransNotFound404, 404));
+    }
+
+    [Fact]
+    public async Task DeleteStockTransAsync_ShouldReturnSuccess_WhenAllStatementsPass()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<StockTrans>().GetByIdAsync(TestStockTrans.Id))
+            .ReturnsAsync(TestStockTrans);
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<StockTrans>().DeleteAsync(TestStockTrans))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _stockTransService.DeleteStockTransactionAsync(TestStockTrans.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<NoContentDto>.Success(204));
+    }
+
+
+    // Get All Stock Transactions Tests
+    [Fact]
+    public async Task GetAllStockTransAsync_ShoulReturnRestrictedAccess_WhenUserIsNotAdmnin()
+    {
+        // Arrange
+        SetupAuthenticatedUser(role: "user");
+
+        // Act
+        var result = await _stockTransService.GetAllStockTransactionsAsync();
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, 403));
+    }
+
+    [Fact]
+    public async Task GetAllStockTransAsync_ShoulReturnNotFound_WhenStockTransNotExist()
+    {
+        // Arrange
+        SetupAuthenticatedUser(role:"admin");
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<StockTrans>().GetAllAsync(x => x.DeletedAt == null, null))
+            .ReturnsAsync(new List<StockTrans> { });
+
+        // Act
+        var result = await _stockTransService.GetAllStockTransactionsAsync();
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockTransNotFound404, 404));
+    }
+
+    [Fact]
+    public async Task GetAllStockTransAsync_ShoulReturnSuccess_WhenAllStatementsPass()
+    {
+        // Arrange
+        SetupAuthenticatedUser(role: "admin");
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<StockTrans>().GetAllAsync(x => x.DeletedAt == null, null))
+            .ReturnsAsync(new List<StockTrans> { TestStockTrans });
+
+        var responseList = new List<StockTransResponseDto>
+        {
+            _stockTransResponseDto,
+        };
+
+        MapperMock
+            .Setup(m => m.Map<IList<StockTransResponseDto>>(new List<StockTrans> { TestStockTrans }))
+            .Returns(responseList);
+
+        // Act
+        var result = await _stockTransService.GetAllStockTransactionsAsync();
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Success(responseList, 200));
+    }
+
+
+    // Get Transactions By Stock Id Tests
+    [Fact]
+    public async Task GetTransactionsByStockIdAsync_ShouldReturnNotFound_WhenStockNotExist()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Stock>().GetByIdAsync(TestStock.Id, s => s.StockTransactions))
+            .ReturnsAsync(null as Stock);
+
+        // Act
+        var result = await _stockTransService.GetTransactionsByStockIdAsync(TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockNotFound404, 404));
+    }
+
+    [Fact]
+    public async Task GetTransactionsByStockIdAsync_ShouldReturnNotFound_WhenStockIsDeleted()
+    {
+        // Arrange
+        TestStock.DeletedAt = DateTime.UtcNow;
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Stock>().GetByIdAsync(TestStock.Id, s => s.StockTransactions))
+            .ReturnsAsync(TestStock);
+
+        // Act
+        var result = await _stockTransService.GetTransactionsByStockIdAsync(TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockNotFound404, 404));
+    }
+
+    [Fact]
+    public async Task GetTransactionsByStockIdAsync_ShouldReturnNotFound_WhenStockHasNoTransaction()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Stock>().GetByIdAsync(TestStock.Id, s => s.StockTransactions))
+            .ReturnsAsync(TestStock);
+
+        TestStock.StockTransactions = [];
+
+        // Act
+        var result = await _stockTransService.GetTransactionsByStockIdAsync(TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockTransNotFound404, 404));
+    }
+
+    [Fact]
+    public async Task GetTransactionsByStockIdAsync_ShouldReturnSuccess_WhenAllStatementsPass() { 
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Stock>().GetByIdAsync(TestStock.Id, s => s.StockTransactions))
+            .ReturnsAsync(TestStock);
+
+        TestStock.StockTransactions = 
+        [
+            TestStockTrans
+        ];
+
+        var responseList = new List<StockTransResponseDto>{
+            _stockTransResponseDto 
+        };
+        MapperMock
+            .Setup(m => m.Map<IList<StockTransResponseDto>>(TestStock.StockTransactions))
+            .Returns(responseList);
+
+        // Act
+        var result = await _stockTransService.GetTransactionsByStockIdAsync(TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockTransResponseDto>>.Success(responseList, 200));
+    }
 }
