@@ -39,4 +39,7 @@ public static class ErrorMessageService
 
     //STOCK TRANS MESSAGE
     public static string StockTransNotFound404 => "Stock trans not found";
+
+    //ACCOUNT MESSAGES
+    public static string AccountNotFound404 => "Account not found";
 }

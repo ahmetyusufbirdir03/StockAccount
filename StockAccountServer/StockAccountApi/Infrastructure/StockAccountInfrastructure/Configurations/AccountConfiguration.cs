@@ -12,16 +12,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.CompanyId)
-               .IsRequired();
-
         builder.Property(a => a.AccountName)
                .HasMaxLength(200)
                .IsRequired(false);
-
-        builder.Property(a => a.AccountType)
-               .HasConversion<int>()
-               .IsRequired();
 
         builder.Property(a => a.PhoneNumber)
                .HasMaxLength(50)
@@ -35,15 +28,12 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
                .HasMaxLength(500)
                .IsRequired(false);
 
-        builder.Property(a => a.Balance)
-               .HasColumnType("decimal(18,2)") 
-               .IsRequired();
-
         // NAVIGATION PROPERTIES
-        builder.HasOne(a => a.Company)
-               .WithMany(c => c.Accounts) 
-               .HasForeignKey(a => a.CompanyId)
-               .OnDelete(DeleteBehavior.Restrict);
+        builder
+            .HasMany(a => a.AccountCompanies)
+            .WithOne(ac => ac.Account)
+            .HasForeignKey(ac => ac.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(c => c.Receipts)
             .WithOne(r => r.Account)
