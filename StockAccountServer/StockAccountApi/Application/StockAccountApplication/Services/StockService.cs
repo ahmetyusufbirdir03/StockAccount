@@ -210,7 +210,7 @@ public class StockService : IStockService
                 StatusCodes.Status403Forbidden
             );
         }
-
+        
         var updatedStock = _mapper.Map(Request, stock);
 
         var response = _mapper.Map<StockResponseDto>(updatedStock);
@@ -255,7 +255,11 @@ public class StockService : IStockService
             TotalPrice = Request.Amount * stock.Price
         };
 
-        await _stockTransDomainService.CreateStockTransAsync(model);
+        StockTrans stockTrans = await _stockTransDomainService.CreateStockTransAsync(model);
+        if(stockTrans == null)
+        {
+            return ResponseDto<StockResponseDto>.Fail(ErrorMessageService.InternalServerError500,StatusCodes.Status500InternalServerError);
+        }
 
         await _unitOfWork.GetGenericRepository<Stock>().UpdateAsync(stock);
 

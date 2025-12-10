@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using StockAccountApplication.Services.UtilServices;
 using StockAccountContracts.Dtos;
+using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.StockTrans;
 using StockAccountContracts.Dtos.StockTrans.Create;
 using StockAccountContracts.Interfaces;
@@ -84,18 +85,54 @@ public class StockTransService : IStockTransService
 
     }
 
-    public Task<ResponseDto<NoContentDto>> DeleteStockTransactionAsync(Guid StockTransId)
+    public async Task<ResponseDto<NoContentDto>> DeleteStockTransactionAsync(Guid StockTransId)
     {
-        throw new NotImplementedException();
+        var stockTrans = await _unitOfWork.GetGenericRepository<StockTrans>().GetByIdAsync(StockTransId);
+        if(stockTrans == null)
+        {
+            return ResponseDto<NoContentDto>.Fail(ErrorMessageService.StockTransNotFound404, StatusCodes.Status404NotFound);
+        }
+
+        await _unitOfWork.GetGenericRepository<StockTrans>().DeleteAsync(stockTrans);
+
+        return ResponseDto<NoContentDto>.Success(StatusCodes.Status204NoContent);
     }
 
-    public Task<ResponseDto<IList<StockTransResponseDto>>> GetAllStockTransactionsAsync()
+    public async Task<ResponseDto<IList<StockTransResponseDto>>> GetAllStockTransactionsAsync() 
     {
-        throw new NotImplementedException();
+        var currentUser = _httpContextAccessor.HttpContext?.User;
+        if (currentUser == null || !currentUser.IsInRole("admin"))
+        {
+            return ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden);
+        }
+
+        var stockTrans = await _unitOfWork.GetGenericRepository<StockTrans>()
+            .GetAllAsync(x => x.DeletedAt == null, null);
+        if (!stockTrans.Any())
+        {
+            return ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockTransNotFound404, StatusCodes.Status404NotFound);
+        }
+
+        var responseList = _mapper.Map<IList<StockTransResponseDto>>(stockTrans);
+
+        return ResponseDto<IList<StockTransResponseDto>>.Success(responseList, StatusCodes.Status200OK);
     }
 
-    public Task<ResponseDto<IList<StockTransResponseDto>>> GetTransactionsByStockIdAsync(Guid stockId)
+    public async Task<ResponseDto<IList<StockTransResponseDto>>> GetTransactionsByStockIdAsync(Guid stockId)
     {
-        throw new NotImplementedException();
+        var stock = await _unitOfWork.GetGenericRepository<Stock>().GetByIdAsync(stockId, s => s.StockTransactions);
+        if(stock == null || stock.DeletedAt != null)
+        {
+            return ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockNotFound404, StatusCodes.Status404NotFound);
+        }
+
+        if(stock.StockTransactions.Count  == 0)
+        {
+            return ResponseDto<IList<StockTransResponseDto>>.Fail(ErrorMessageService.StockTransNotFound404, StatusCodes.Status404NotFound);
+        }
+
+        var responseList = _mapper.Map<IList<StockTransResponseDto>>(stock.StockTransactions);
+
+        return ResponseDto<IList<StockTransResponseDto>>.Success(responseList, StatusCodes.Status200OK);
     }
 }

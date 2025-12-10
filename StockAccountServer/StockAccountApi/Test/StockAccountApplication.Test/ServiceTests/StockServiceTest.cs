@@ -706,7 +706,7 @@ public class StockServiceTest : ServiceTestBase
             Quantity = increaseQuantityRequestDto.Amount,
             Type = StockTransTypeEnum.In,
             UnitPrice = TestStock.Price,
-            TotalPrice = increaseQuantityRequestDto.Amount * TestStock.Quantity,
+            TotalPrice = increaseQuantityRequestDto.Amount * TestStock.Price,
         };
 
         ValidationServiceMock
@@ -728,7 +728,7 @@ public class StockServiceTest : ServiceTestBase
             .Returns(stockResponseDto);
 
         StockTransDomainServiceMock
-            .Setup(s => s.CreateStockTransAsync(model))
+            .Setup(s => s.CreateStockTransAsync(It.IsAny<StockTransModel>()))
             .ReturnsAsync(TestStockTrans);
 
 
@@ -748,8 +748,6 @@ public class StockServiceTest : ServiceTestBase
             m.Type == StockTransTypeEnum.In &&
             m.TotalPrice == increaseQuantityRequestDto.Amount * TestStock.Price
         )), Times.Once);
-
-
     }
 
     [Fact]
@@ -795,6 +793,13 @@ public class StockServiceTest : ServiceTestBase
         MapperMock
             .Setup(m => m.Map<StockResponseDto>(TestStock))
             .Returns(stockResponseDto);
+
+        var fakeStockTrans = new StockTrans { Id = Guid.NewGuid() };
+
+        StockTransDomainServiceMock
+            .Setup(s => s.CreateStockTransAsync(It.IsAny<StockTransModel>()))
+            .ReturnsAsync(fakeStockTrans);
+
 
         //Act
         var result = await _stockService.UpdateStockQuantityAsync(decreaseQuantitySufficientRequestDto);
