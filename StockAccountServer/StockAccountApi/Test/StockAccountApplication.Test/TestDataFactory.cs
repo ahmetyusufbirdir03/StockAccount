@@ -103,4 +103,20 @@ public static class TestDataFactory
         };
     }
 
+    public static Account CreateTestAccount(
+        string name = "Account",
+        string email = "email@mail.com",
+        string phoneNumber = "00000000001",
+        string address = "Address")
+    {
+        return new Account
+        {
+            Id = Guid.NewGuid(),
+            Email = name,
+            AccountName = email,
+            PhoneNumber = phoneNumber,
+            Address = address
+        };
+    }
+
 }
