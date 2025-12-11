@@ -82,7 +82,6 @@ public class CompanyService : ICompanyService
         return ResponseDto<CompanyResponseDto>.Success(companyResponse, 201);
 
     }
-
     public async Task<ResponseDto<NoContentDto>> SoftDeleteCompany(Guid companyId)
     {
         var company = await _unitOfWork.GetGenericRepository<Company>().GetAsync(c => c.DeletedAt == null && c.Id == companyId);
@@ -98,7 +97,6 @@ public class CompanyService : ICompanyService
 
         return ResponseDto<NoContentDto>.Success(204);  
     }
-
     public async Task<ResponseDto<IList<CompanyResponseDto>>> GetAllCompanies()
     {
         var currentUser = _httpContextAccessor.HttpContext?.User;
@@ -115,7 +113,6 @@ public class CompanyService : ICompanyService
         IList<CompanyResponseDto> _companies = _mapper.Map<IList<CompanyResponseDto>>(companies);
         return ResponseDto<IList<CompanyResponseDto>>.Success(_companies, StatusCodes.Status200OK);
     }
-
     public async Task<ResponseDto<IList<CompanyResponseDto>>> GetUserCompanies(Guid userId)
     {
         var user = await _unitOfWork
@@ -147,8 +144,6 @@ public class CompanyService : ICompanyService
 
         return ResponseDto<IList<CompanyResponseDto>>.Success(companies, 200);
     }
-
-
     public async Task<ResponseDto<CompanyResponseDto>> UpdateCompany(UpdateCompanyRequestDto request)
     {
         var company = await _unitOfWork.GetGenericRepository<Company>().GetByIdAsync(request.Id, c => c.DeletedAt == null);

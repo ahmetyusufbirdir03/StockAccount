@@ -37,11 +37,10 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // COMPANY 1 → M ACCOUNTCOMPANY
-        builder
-            .HasMany(a => a.AccountCompanies)
-            .WithOne(ac => ac.Company)
-            .HasForeignKey(ac => ac.CompanyId)
+        // COMAPANY 1 -> M ACCOUNT
+        builder.HasMany(c => c.Accounts)
+            .WithOne(s => s.Company)
+            .HasForeignKey(s => s.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // COMPANY 1 → M STOCK
