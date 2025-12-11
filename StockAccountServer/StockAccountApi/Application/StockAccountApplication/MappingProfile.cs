@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using StockAccountContracts.Dtos.Account;
 using StockAccountContracts.Dtos.Account.Create;
+using StockAccountContracts.Dtos.Account.Update;
 using StockAccountContracts.Dtos.Auth.Register;
 using StockAccountContracts.Dtos.Company;
 using StockAccountContracts.Dtos.Company.Create;
@@ -28,6 +29,7 @@ public class MappingProfile : Profile
         CreateMap<CreateStockTransRequestDto, StockTrans>();
         CreateMap<StockTrans, StockTransResponseDto>(); 
         CreateMap<CreateAccountRequestDto, Account>();
+        CreateMap<UpdateAccountRequestDto, Account>();
         CreateMap<Account, AccountResponseDto>();
     }
 }

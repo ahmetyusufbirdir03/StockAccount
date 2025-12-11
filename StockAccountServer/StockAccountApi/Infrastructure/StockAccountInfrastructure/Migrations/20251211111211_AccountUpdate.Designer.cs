@@ -12,8 +12,8 @@ using StockAccountInfrastructure.Context;
 namespace StockAccountInfrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251210115538_AccountCompanyUpdate")]
-    partial class AccountCompanyUpdate
+    [Migration("20251211111211_AccountUpdate")]
+    partial class AccountUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -142,6 +142,12 @@ namespace StockAccountInfrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<decimal?>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -170,32 +176,9 @@ namespace StockAccountInfrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CompanyId");
+
                     b.ToTable("Accounts", (string)null);
-                });
-
-            modelBuilder.Entity("StockAccountDomain.Entities.AccountCompany", b =>
-                {
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Balance")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<DateTime>("LinkedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.HasKey("CompanyId", "AccountId");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("AccountCompany", (string)null);
                 });
 
             modelBuilder.Entity("StockAccountDomain.Entities.ActTrans", b =>
@@ -640,21 +623,13 @@ namespace StockAccountInfrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StockAccountDomain.Entities.AccountCompany", b =>
+            modelBuilder.Entity("StockAccountDomain.Entities.Account", b =>
                 {
-                    b.HasOne("StockAccountDomain.Entities.Account", "Account")
-                        .WithMany("AccountCompanies")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("StockAccountDomain.Entities.Company", "Company")
-                        .WithMany("AccountCompanies")
+                        .WithMany("Accounts")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Account");
 
                     b.Navigation("Company");
                 });
@@ -755,8 +730,6 @@ namespace StockAccountInfrastructure.Migrations
 
             modelBuilder.Entity("StockAccountDomain.Entities.Account", b =>
                 {
-                    b.Navigation("AccountCompanies");
-
                     b.Navigation("ActTransactions");
 
                     b.Navigation("Receipts");
@@ -764,7 +737,7 @@ namespace StockAccountInfrastructure.Migrations
 
             modelBuilder.Entity("StockAccountDomain.Entities.Company", b =>
                 {
-                    b.Navigation("AccountCompanies");
+                    b.Navigation("Accounts");
 
                     b.Navigation("ActTransactions");
 

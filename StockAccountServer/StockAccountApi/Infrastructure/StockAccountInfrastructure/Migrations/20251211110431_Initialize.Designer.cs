@@ -12,8 +12,8 @@ using StockAccountInfrastructure.Context;
 namespace StockAccountInfrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251210110445_AccountCompany")]
-    partial class AccountCompany
+    [Migration("20251211110431_Initialize")]
+    partial class Initialize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -138,15 +138,12 @@ namespace StockAccountInfrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int>("AccountType")
-                        .HasColumnType("int");
-
                     b.Property<string>("Address")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -176,46 +173,9 @@ namespace StockAccountInfrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Accounts", (string)null);
-                });
-
-            modelBuilder.Entity("StockAccountDomain.Entities.AccountCompany", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("AccountCompany");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("StockAccountDomain.Entities.ActTrans", b =>
@@ -660,21 +620,13 @@ namespace StockAccountInfrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StockAccountDomain.Entities.AccountCompany", b =>
+            modelBuilder.Entity("StockAccountDomain.Entities.Account", b =>
                 {
-                    b.HasOne("StockAccountDomain.Entities.Account", "Account")
-                        .WithMany("AccountCompanies")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("StockAccountDomain.Entities.Company", "Company")
-                        .WithMany("AccountCompanies")
+                        .WithMany("Accounts")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Account");
 
                     b.Navigation("Company");
                 });
@@ -775,8 +727,6 @@ namespace StockAccountInfrastructure.Migrations
 
             modelBuilder.Entity("StockAccountDomain.Entities.Account", b =>
                 {
-                    b.Navigation("AccountCompanies");
-
                     b.Navigation("ActTransactions");
 
                     b.Navigation("Receipts");
@@ -784,7 +734,7 @@ namespace StockAccountInfrastructure.Migrations
 
             modelBuilder.Entity("StockAccountDomain.Entities.Company", b =>
                 {
-                    b.Navigation("AccountCompanies");
+                    b.Navigation("Accounts");
 
                     b.Navigation("ActTransactions");
 

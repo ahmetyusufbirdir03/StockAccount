@@ -112,8 +112,8 @@ public static class TestDataFactory
         return new Account
         {
             Id = Guid.NewGuid(),
-            Email = name,
-            AccountName = email,
+            Email = email,
+            AccountName = name,
             PhoneNumber = phoneNumber,
             Address = address
         };

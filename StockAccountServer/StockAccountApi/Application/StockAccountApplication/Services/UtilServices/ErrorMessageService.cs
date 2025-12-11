@@ -42,4 +42,5 @@ public static class ErrorMessageService
 
     //ACCOUNT MESSAGES
     public static string AccountNotFound404 => "Account not found";
+    public static string AlreadyHaveThatAccount409 => "You already have this account on your list";
 }

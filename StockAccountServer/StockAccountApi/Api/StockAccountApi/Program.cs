@@ -7,7 +7,7 @@ using StockAccountInfrastructure;
 using StockAccountApplication;
 using StockAccountContracts;
 
-var builder = WebApplication.CreateBuilder(args);
+
 
 
 Console.WriteLine("========== APPLICATION STARTING ==========");
@@ -30,7 +30,7 @@ else
     Console.WriteLine(".env NOT FOUND!");
 }
 
-
+var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 
 
@@ -54,7 +54,6 @@ builder.Host.UseSerilog();
 builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddControllers();
-
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddContracts(builder.Configuration);
@@ -119,6 +118,7 @@ app.UseCors();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -26,7 +26,6 @@ public abstract class ServiceTestBase
     protected Mock<IUserRepository> UserRepositoryMock { get; }
     protected Mock<IHttpContextAccessor> HttpContextAccessorMock { get; }
     protected Mock<IStockTransDomainService> StockTransDomainServiceMock { get; }
-    protected Mock<IAccountCompanyDomainService> AccountCompanyDomainServiceMock { get; }
 
     // FAKE SEED DATA
     protected User TestUser { get; private set; }
@@ -47,7 +46,6 @@ public abstract class ServiceTestBase
         UserRepositoryMock = new Mock<IUserRepository>();
         HttpContextAccessorMock = new Mock<IHttpContextAccessor>();
         StockTransDomainServiceMock = new Mock<IStockTransDomainService>();
-        AccountCompanyDomainServiceMock = new Mock<IAccountCompanyDomainService>();
 
         UserManagerMock = MockUserManager();
         RoleManagerMock = MockRoleManager();
