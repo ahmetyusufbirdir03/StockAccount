@@ -43,4 +43,9 @@ public static class ErrorMessageService
     //ACCOUNT MESSAGES
     public static string AccountNotFound404 => "Account not found";
     public static string AlreadyHaveThatAccount409 => "You already have this account on your list";
+    public static string MaxAccounLimitReached403 => "A user can create a maximum of 10 Accounts";
+
+    //RECEIPT MESSAGES
+    public static string ReceitNotFound404 => "Account not found";
+    
 }

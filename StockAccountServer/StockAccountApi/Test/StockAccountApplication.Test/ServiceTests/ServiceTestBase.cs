@@ -33,6 +33,8 @@ public abstract class ServiceTestBase
     protected Stock TestStock { get; private set; }
     protected StockTrans TestStockTrans { get; private set; }
     protected Account TestAccount {  get; private set; }
+
+    protected Receipt TestReceipt { get; private set; }
     protected JwtSecurityToken TestJwtToken { get; private set; }
     protected string TestRefreshToken { get; private set; }
 
@@ -56,6 +58,7 @@ public abstract class ServiceTestBase
         TestStock = TestDataFactory.CreateTestStock();
         TestStockTrans = TestDataFactory.CreateTestStockTrans();
         TestAccount = TestDataFactory.CreateTestAccount();
+        TestReceipt = TestDataFactory.CreateTestReceipt();
         TestJwtToken = TestDataFactory.CreateTestJwtToken();
         TestRefreshToken = TestDataFactory.CreateTestRefreshToken();
 
@@ -108,4 +111,18 @@ public abstract class ServiceTestBase
 
         HttpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
     }
+
+    protected void SetupUnauthenticatedUser()
+    {
+        var identity = new ClaimsIdentity(); 
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipal
+        };
+
+        HttpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
+    }
+
 }

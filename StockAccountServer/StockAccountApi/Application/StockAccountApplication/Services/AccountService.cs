@@ -5,6 +5,7 @@ using StockAccountContracts.Dtos;
 using StockAccountContracts.Dtos.Account;
 using StockAccountContracts.Dtos.Account.Create;
 using StockAccountContracts.Dtos.Account.Update;
+using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Interfaces;
 using StockAccountContracts.Interfaces.Services;
 using StockAccountDomain.Entities;
@@ -16,16 +17,18 @@ public class AccountService : IAccountService
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidationService _validationService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AccountService(
         IMapper mapper,
         IUnitOfWork unitOfWork,
-        IValidationService validationService
-         )
+        IValidationService validationService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _mapper = mapper;
         _unitOfWork = unitOfWork;
         _validationService = validationService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ResponseDto<AccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto Request)
@@ -34,13 +37,18 @@ public class AccountService : IAccountService
         if (validationError != null)
             return validationError;
 
-        var company = await _unitOfWork.GetGenericRepository<Company>().GetByIdAsync(Request.CompanyId);
+        var company = await _unitOfWork.GetGenericRepository<Company>().GetByIdAsync(Request.CompanyId, c => c.Accounts);
         if(company == null || company.DeletedAt != null)
         {
             return ResponseDto<AccountResponseDto>.Fail(ErrorMessageService.CompanyNotFound404, StatusCodes.Status404NotFound);
         }
 
-        var accounts = await _unitOfWork.GetGenericRepository<Account>().GetAllAsync(c => c.CompanyId == Request.CompanyId, null);
+        var accounts = company.Accounts.ToList();
+        
+        if(accounts.Count >= 10)
+        {
+            return ResponseDto<AccountResponseDto>.Fail(ErrorMessageService.MaxAccounLimitReached403, StatusCodes.Status403Forbidden);
+        }
 
         var isEmailConflicts = accounts.Where(a => a.Email == Request.Email).ToList();
         if(isEmailConflicts.Count != 0)
@@ -79,7 +87,7 @@ public class AccountService : IAccountService
 
         if (accountToUpdate == null)
         {
-            return ResponseDto<AccountResponseDto>.Fail("Account not found.", 404);
+            return ResponseDto<AccountResponseDto>.Fail(ErrorMessageService.AccountNotFound404, StatusCodes.Status404NotFound);
         }
 
         var isEmaiLConflicts = company.Accounts.Any(a => a.Email == Request.Email && a.Id != Request.Id);
@@ -105,6 +113,12 @@ public class AccountService : IAccountService
 
     public async Task<ResponseDto<IList<AccountResponseDto>>> GetAllAccountsAsync()
     {
+        var currentUser = _httpContextAccessor.HttpContext?.User;
+        if (currentUser == null || !currentUser.IsInRole("admin"))
+        {
+            return ResponseDto<IList<AccountResponseDto>>.Fail(ErrorMessageService.Unauthorized401, StatusCodes.Status401Unauthorized);
+        }
+
         var accounts = await _unitOfWork.GetGenericRepository<Account>().GetAllAsync();
         if(accounts is null || accounts.Count == 0)
         {
