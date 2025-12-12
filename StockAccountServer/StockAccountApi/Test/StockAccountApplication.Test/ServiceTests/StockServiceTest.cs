@@ -216,7 +216,7 @@ public class StockServiceTest : ServiceTestBase
         var result = await _stockService.GetAllStocksAsync();
 
         //Assert
-        result.Should().BeEquivalentTo(ResponseDto<IList<Stock>>.Fail(ErrorMessageService.Unauthorized401, 401));
+        result.Should().BeEquivalentTo(ResponseDto<IList<StockResponseDto>>.Fail(ErrorMessageService.Unauthorized401, 401));
     }
 
     [Fact]

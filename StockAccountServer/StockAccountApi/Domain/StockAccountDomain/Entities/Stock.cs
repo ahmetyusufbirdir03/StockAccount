@@ -13,5 +13,6 @@ public class Stock : BaseEntity
 
     // Navigation Properties
     public Company Company { get; set; }
+    public ICollection<Receipt> Receipts { get; set; }
     public ICollection<StockTrans> StockTransactions { get; set; }
 }

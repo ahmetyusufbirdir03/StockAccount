@@ -119,4 +119,19 @@ public static class TestDataFactory
         };
     }
 
+    public static Receipt CreateTestReceipt(
+            decimal Amount = 5m
+        )
+    {
+        return new Receipt
+        {
+            Id = Guid.NewGuid(),
+            AccountId = Guid.NewGuid(),
+            CompanyId = Guid.NewGuid(),
+            StockId = Guid.NewGuid(),
+            Amount = Amount,
+            Type = ReceiptTypeEnum.Sale
+        };
+    }
+
 }

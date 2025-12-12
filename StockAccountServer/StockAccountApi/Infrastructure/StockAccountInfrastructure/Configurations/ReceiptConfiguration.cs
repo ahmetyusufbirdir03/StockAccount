@@ -32,6 +32,11 @@ public class ReceiptConfiguration : IEntityTypeConfiguration<Receipt>
             .HasForeignKey(r => r.AccountId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(r => r.Stock)
+            .WithMany(c => c.Receipts)
+            .HasForeignKey(r => r.StockId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(r => r.ActTransactions)
             .WithOne(c => c.Receipt)
             .HasForeignKey(r => r.ReceiptId)
