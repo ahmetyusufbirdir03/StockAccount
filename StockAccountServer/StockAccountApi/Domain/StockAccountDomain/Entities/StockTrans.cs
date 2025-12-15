@@ -9,10 +9,10 @@ public class StockTrans : BaseEntity
         
     }
 
-    public StockTrans(Guid companyId, Guid? counterpartyCompanyId, Guid stockId, StockTransTypeEnum type, decimal quantity, decimal unitPrice, decimal totalPrice)
+    public StockTrans(Guid companyId, Guid? accountId, Guid stockId, StockTransTypeEnum type, decimal quantity, decimal unitPrice, decimal totalPrice)
     {
         CompanyId = companyId;
-        CounterpartyCompanyId = counterpartyCompanyId;
+        AccountId = accountId;
         StockId = stockId;
         Type = type;
         Quantity = quantity;
@@ -21,7 +21,7 @@ public class StockTrans : BaseEntity
     }
 
     public Guid CompanyId { get; set; }
-    public Guid? CounterpartyCompanyId { get; set; }
+    public Guid? AccountId { get; set; }
     public Guid StockId { get; set; }
     public StockTransTypeEnum Type { get; set; }
     public decimal Quantity { get; set; }
@@ -30,6 +30,6 @@ public class StockTrans : BaseEntity
 
     // Navigation Properties
     public Company Company { get; set; }
-    public Company CounterpartyCompany { get; set; }
+    public Account Account { get; set; }
     public Stock Stock { get; set; }
 }

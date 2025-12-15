@@ -1,7 +1,22 @@
-﻿namespace StockAccountDomain.Entities;
+﻿using StockAccountDomain.Enums;
+
+namespace StockAccountDomain.Entities;
 
 public class ActTrans : BaseEntity
 {
+    public ActTrans()
+    {
+
+    }
+
+    public ActTrans(Guid companyId, Guid accountId, Guid receiptId, decimal amount, string description)
+    {
+        CompanyId = companyId;
+        AccountId = accountId;
+        ReceiptId = receiptId;
+        Amount = amount;
+        Description = description;
+    }
     public Guid CompanyId { get; set; }
     public Guid AccountId { get; set; }
     public Guid ReceiptId { get; set; }

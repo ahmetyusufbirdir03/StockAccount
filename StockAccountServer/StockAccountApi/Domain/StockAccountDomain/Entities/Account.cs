@@ -12,5 +12,7 @@ public class Account : BaseEntity
     //NAVIGATION PROPERTY
     public Company Company { get; set; }
     public ICollection<Receipt> Receipts { get; set; }
+
+    public ICollection<StockTrans> StockTransactions { get; set; }
     public ICollection<ActTrans> ActTransactions { get; set; }
 }

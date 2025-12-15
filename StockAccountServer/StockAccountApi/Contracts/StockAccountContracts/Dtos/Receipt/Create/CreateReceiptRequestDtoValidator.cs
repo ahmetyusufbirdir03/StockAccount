@@ -17,9 +17,6 @@ public class CreateReceiptRequestDtoValidator : AbstractValidator<CreateReceiptR
         RuleFor(x => x.Quantity)
             .GreaterThan(0).WithMessage("Quantity 0'dan büyük olmalıdır.");
 
-        RuleFor(x => x.UnitCurrentPrice)
-            .GreaterThanOrEqualTo(0).WithMessage("UnitCurentPrice negatif olamaz.");
-
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Geçerli bir satış türü giriniz.");
 

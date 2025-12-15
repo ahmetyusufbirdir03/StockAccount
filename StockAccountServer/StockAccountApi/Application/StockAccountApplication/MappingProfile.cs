@@ -5,6 +5,8 @@ using StockAccountContracts.Dtos.Account.Update;
 using StockAccountContracts.Dtos.Auth.Register;
 using StockAccountContracts.Dtos.Company;
 using StockAccountContracts.Dtos.Company.Create;
+using StockAccountContracts.Dtos.Receipt;
+using StockAccountContracts.Dtos.Receipt.Create;
 using StockAccountContracts.Dtos.Stock;
 using StockAccountContracts.Dtos.Stock.Create;
 using StockAccountContracts.Dtos.Stock.Update;
@@ -31,5 +33,7 @@ public class MappingProfile : Profile
         CreateMap<CreateAccountRequestDto, Account>();
         CreateMap<UpdateAccountRequestDto, Account>();
         CreateMap<Account, AccountResponseDto>();
+        CreateMap<CreateReceiptRequestDto, Receipt>();
+        CreateMap<Receipt, ReceiptResponseDto>();
     }
 }
