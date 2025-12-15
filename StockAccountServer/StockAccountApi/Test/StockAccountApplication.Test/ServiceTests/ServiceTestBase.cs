@@ -26,12 +26,14 @@ public abstract class ServiceTestBase
     protected Mock<IUserRepository> UserRepositoryMock { get; }
     protected Mock<IHttpContextAccessor> HttpContextAccessorMock { get; }
     protected Mock<IStockTransDomainService> StockTransDomainServiceMock { get; }
+    protected Mock<IActTransDomainService> ActTransDomainServiceMock { get; }
 
     // FAKE SEED DATA
     protected User TestUser { get; private set; }
     protected Company TestCompany { get; private set; }
     protected Stock TestStock { get; private set; }
     protected StockTrans TestStockTrans { get; private set; }
+    protected ActTrans TestActTrans { get; private set; }
     protected Account TestAccount {  get; private set; }
 
     protected Receipt TestReceipt { get; private set; }
@@ -48,6 +50,7 @@ public abstract class ServiceTestBase
         UserRepositoryMock = new Mock<IUserRepository>();
         HttpContextAccessorMock = new Mock<IHttpContextAccessor>();
         StockTransDomainServiceMock = new Mock<IStockTransDomainService>();
+        ActTransDomainServiceMock = new Mock<IActTransDomainService>();
 
         UserManagerMock = MockUserManager();
         RoleManagerMock = MockRoleManager();
@@ -57,6 +60,7 @@ public abstract class ServiceTestBase
         TestCompany = TestDataFactory.CreateTestCompany();
         TestStock = TestDataFactory.CreateTestStock();
         TestStockTrans = TestDataFactory.CreateTestStockTrans();
+        TestActTrans = TestDataFactory.CreateTestActTrans();
         TestAccount = TestDataFactory.CreateTestAccount();
         TestReceipt = TestDataFactory.CreateTestReceipt();
         TestJwtToken = TestDataFactory.CreateTestJwtToken();
@@ -91,26 +95,37 @@ public abstract class ServiceTestBase
             .Returns("1"); 
     }
 
-    protected void SetupAuthenticatedUser(string role = "user", string userName ="TestUser")
+    protected Guid SetupAuthenticatedUser(
+        string role = "user",
+        string userName = "TestUser",
+        string email = "test@mail.com")
     {
         var userId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
         var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, role),
-            new Claim(ClaimTypes.Email, "test@mail.com"),
-            new Claim(ClaimTypes.Name, userName ?? "")
-        };
+    {
+        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+        new Claim(ClaimTypes.Role, role),
+        new Claim(ClaimTypes.Name, userName),
+        new Claim(ClaimTypes.Email, email)
+    };
 
         var identity = new ClaimsIdentity(claims, "TestAuthType");
-        var claimsPrincipal = new ClaimsPrincipal(identity);
+        var principal = new ClaimsPrincipal(identity);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.User = claimsPrincipal;
+        var httpContext = new DefaultHttpContext
+        {
+            User = principal
+        };
 
-        HttpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
+        HttpContextAccessorMock
+            .Setup(x => x.HttpContext)
+            .Returns(httpContext);
+
+        return userId;
     }
+
+
 
     protected void SetupUnauthenticatedUser()
     {

@@ -88,18 +88,33 @@ public static class TestDataFactory
         int quantity = 5,
         StockTransTypeEnum type = StockTransTypeEnum.In,
         decimal unitPrice = 10.2m,
-        string description = "TestStock")
+        string description = "TestStockTrans")
     {
         return new StockTrans
         {
             Id = Guid.NewGuid(),
             CompanyId = Guid.NewGuid(),
             StockId = Guid.NewGuid(),
-            CounterpartyCompanyId = Guid.NewGuid(),
+            AccountId = Guid.NewGuid(),
             Quantity = quantity,
             Type = type,
             UnitPrice = unitPrice,
             TotalPrice = quantity * unitPrice,
+        };
+    }
+
+    public static ActTrans CreateTestActTrans(
+        decimal amount = 5m,
+        string description = "TestActTrans")
+    {
+        return new ActTrans
+        {
+            Id = Guid.NewGuid(),
+            CompanyId = Guid.NewGuid(),
+            AccountId = Guid.NewGuid(),
+            ReceiptId = Guid.NewGuid(),
+            Amount = amount,
+            Description = description,
         };
     }
 

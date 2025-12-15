@@ -32,9 +32,9 @@ public class StockTransConfiguration : IEntityTypeConfiguration<StockTrans>
             .HasForeignKey(st => st.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(st => st.CounterpartyCompany)
-            .WithMany() 
-            .HasForeignKey(st => st.CounterpartyCompanyId)
+        builder.HasOne(st => st.Account)
+            .WithMany(a => a.StockTransactions) 
+            .HasForeignKey(st => st.AccountId)
             .OnDelete(DeleteBehavior.Restrict);
 
 

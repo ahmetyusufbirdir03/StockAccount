@@ -4,11 +4,11 @@ using Moq;
 using StockAccountApplication.Services;
 using StockAccountApplication.Services.UtilServices;
 using StockAccountContracts.Dtos;
-using StockAccountContracts.Dtos.Account;
 using StockAccountContracts.Dtos.Receipt;
 using StockAccountContracts.Dtos.Receipt.Create;
 using StockAccountDomain.Entities;
 using StockAccountDomain.Enums;
+using StockAccountDomain.Models;
 
 namespace StockAccountApplication.Test.ServiceTests;
 
@@ -21,10 +21,8 @@ public class ReceiptServiceTests : ServiceTestBase
         AccountId = Guid.NewGuid(),
         CompanyId = Guid.NewGuid(),
         StockId = Guid.NewGuid(),
-        CreatedAt = DateTime.UtcNow,
-        Quantity = 100,
+        Quantity = 10,
         Type = ReceiptTypeEnum.Sale,
-        UnitCurrentPrice = 100,
     };
 
     private ReceiptResponseDto _receiptResponseDto = new ReceiptResponseDto
@@ -45,7 +43,9 @@ public class ReceiptServiceTests : ServiceTestBase
             UnitOfWorkMock.Object,
             ValidationServiceMock.Object,
             HttpContextAccessorMock.Object,
-            MapperMock.Object
+            MapperMock.Object,
+            StockTransDomainServiceMock.Object,
+            ActTransDomainServiceMock.Object
         );
     }
 
@@ -66,16 +66,43 @@ public class ReceiptServiceTests : ServiceTestBase
     }
 
     [Fact]
-    public async Task CreateReceiptAsync_ShouldReturnNotFound_WhenCompanyNotExist()
+    public async Task CreateReceiptAsync_ShouldReturnRestrictedAccess_WhenUserNotMatchWithCompany()
     {
         // Arrange
+        TestUser.Id = Guid.NewGuid();
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.DeletedAt = null;
+
         ValidationServiceMock
             .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId))
-            .ReturnsAsync(null as Company);
+           .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c=> c.Stocks, c=> c.Accounts))
+           .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<ReceiptResponseDto>.Fail(ErrorMessageService.RestrictedAccess403, 403));
+    }
+
+    [Fact]
+    public async Task CreateReceiptAsync_ShouldReturnNotFound_WhenCompanyNotExist()
+    {
+        // Arrange
+        var testUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        TestUser.Id = testUserId;
+        SetupAuthenticatedUser(role: "user");
+
+        ValidationServiceMock
+            .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
+            .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
+
+        UnitOfWorkMock
+           .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+           .ReturnsAsync(null as Company);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -88,6 +115,10 @@ public class ReceiptServiceTests : ServiceTestBase
     public async Task CreateReceiptAsync_ShouldReturnNotFound_WhenCompanyIsDeleted()
     {
         // Arrange
+        var testUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        TestUser.Id = testUserId;
+        SetupAuthenticatedUser(role: "user");
+
         _createReceiptRequestDto.CompanyId = TestCompany.Id;
         TestCompany.DeletedAt = DateTime.UtcNow;
         
@@ -96,8 +127,8 @@ public class ReceiptServiceTests : ServiceTestBase
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks))
-            .ReturnsAsync(TestCompany);
+           .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+           .ReturnsAsync(TestCompany);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -110,20 +141,26 @@ public class ReceiptServiceTests : ServiceTestBase
     public async Task CreateReceiptAsync_ShouldReturnNotFound_WhenStockNotExistOrFound()
     {
         // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
         _createReceiptRequestDto.CompanyId = TestCompany.Id;
         TestCompany.DeletedAt = null;
-        TestCompany.Stocks = new List<Stock>
-        {
-            TestStock
-        };
+
+        _createReceiptRequestDto.StockId = TestStock.Id;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock>();
+
+        _createReceiptRequestDto.AccountId = TestAccount.Id;
 
         ValidationServiceMock
             .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks))
-            .ReturnsAsync(TestCompany);
+           .Setup(u => u.GetGenericRepository<Company>()
+           .GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+           .ReturnsAsync(TestCompany);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -136,25 +173,22 @@ public class ReceiptServiceTests : ServiceTestBase
     public async Task CreateReceiptAsync_ShouldReturnNotFound_WhenAccountNotExistOrFound()
     {
         // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
         _createReceiptRequestDto.CompanyId = TestCompany.Id;
         TestCompany.DeletedAt = null;
+
         _createReceiptRequestDto.StockId = TestStock.Id;
-        TestCompany.Stocks = new List<Stock>
-        {
-            TestStock
-        };
+        TestCompany.Accounts = new List<Account>();
 
         ValidationServiceMock
             .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks))
-            .ReturnsAsync(TestCompany);
-
-        UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Account>().GetByIdAsync(_createReceiptRequestDto.AccountId))
-            .ReturnsAsync(null as Account);
+           .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+           .ReturnsAsync(TestCompany);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -167,30 +201,27 @@ public class ReceiptServiceTests : ServiceTestBase
     public async Task CreateReceiptAsync_ShouldReturnInsufficientQuantity_WhenStockQuantityLesserThanRequestQuantity()
     {
         // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
         _createReceiptRequestDto.CompanyId = TestCompany.Id;
         TestCompany.DeletedAt = null;
 
         _createReceiptRequestDto.StockId = TestStock.Id;
-        TestStock.Quantity = 10;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestStock };
 
         _createReceiptRequestDto.AccountId = TestAccount.Id;
 
-        TestCompany.Stocks = new List<Stock>
-        {
-            TestStock
-        };
+        TestStock.Quantity = 5;
 
         ValidationServiceMock
             .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks))
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
             .ReturnsAsync(TestCompany);
-
-        UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Account>().GetByIdAsync(_createReceiptRequestDto.AccountId))
-            .ReturnsAsync(TestAccount);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -200,45 +231,147 @@ public class ReceiptServiceTests : ServiceTestBase
     }
 
     [Fact]
-    public async Task CreateReceiptAsync_ShouldReturnSuccess_WhenAllStatementsPass()
+    public async Task CreateReceiptAsync_ShouldReturnInternalServerError_WhenStockTransNotCreated()
     {
         // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
         _createReceiptRequestDto.CompanyId = TestCompany.Id;
         TestCompany.DeletedAt = null;
 
         _createReceiptRequestDto.StockId = TestStock.Id;
-        TestStock.Quantity = 200;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestStock };
 
         _createReceiptRequestDto.AccountId = TestAccount.Id;
 
-        TestCompany.Stocks = new List<Stock>
-        {
-            TestStock
-        };
+        TestStock.Quantity = 100;
 
         ValidationServiceMock
             .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
             .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
 
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks))
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
             .ReturnsAsync(TestCompany);
 
+        MapperMock
+           .Setup(m => m.Map<Receipt>(_createReceiptRequestDto))
+           .Returns(TestReceipt);
+
+        TestReceipt.CreatedAt = DateTime.UtcNow;
+
+        StockTransDomainServiceMock
+            .Setup(s => s.CreateStockTransAsync(It.IsAny<StockTransModel>()))!
+            .ReturnsAsync(null as StockTrans);
+
+        // Act
+        var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<ReceiptResponseDto>.Fail(ErrorMessageService.InternalServerError500, 500));
+    }
+
+    [Fact]
+    public async Task CreateReceiptAsync_ShouldReturnInternalServerError_WhenActTransNotCreated()
+    {
+        // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
+        _createReceiptRequestDto.CompanyId = TestCompany.Id;
+        TestCompany.DeletedAt = null;
+
+        _createReceiptRequestDto.StockId = TestStock.Id;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestStock };
+
+        _createReceiptRequestDto.AccountId = TestAccount.Id;
+
+        TestStock.Quantity = 100;
+
+        ValidationServiceMock
+            .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
+            .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
+
         UnitOfWorkMock
-            .Setup(u => u.GetGenericRepository<Account>().GetByIdAsync(_createReceiptRequestDto.AccountId))
-            .ReturnsAsync(TestAccount);
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
 
         MapperMock
-            .Setup(m => m.Map<Receipt>(_createReceiptRequestDto))
-            .Returns(TestReceipt);
+           .Setup(m => m.Map<Receipt>(_createReceiptRequestDto))
+           .Returns(TestReceipt);
+
+        TestReceipt.CreatedAt = DateTime.UtcNow;
+
+        StockTransDomainServiceMock
+            .Setup(s => s.CreateStockTransAsync(It.IsAny<StockTransModel>()))!
+            .ReturnsAsync(TestStockTrans);
 
         UnitOfWorkMock
             .Setup(u => u.GetGenericRepository<Receipt>().CreateAsync(TestReceipt))
             .ReturnsAsync(TestReceipt);
 
+        ActTransDomainServiceMock
+            .Setup(s => s.CreateActTransAsync(It.IsAny<ActTransModel>()))!
+            .ReturnsAsync(null as ActTrans);
+
+        // Act
+        var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<ReceiptResponseDto>.Fail(ErrorMessageService.InternalServerError500, 500));
+    }
+
+
+    [Fact]
+    public async Task CreateReceiptAsync_ShouldReturnSuccess_WhenAllStatementsPass()
+    {
+        // Arrange
+        SetupAuthenticatedUser(role: "user");
+        TestCompany.UserId = TestUser.Id;
+
+        _createReceiptRequestDto.CompanyId = TestCompany.Id;
+        TestCompany.DeletedAt = null;
+
+        _createReceiptRequestDto.StockId = TestStock.Id;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestStock };
+
+        _createReceiptRequestDto.AccountId = TestAccount.Id;
+
+        TestStock.Quantity = 100;
+
+        ValidationServiceMock
+            .Setup(v => v.ValidateAsync<CreateReceiptRequestDto, ReceiptResponseDto>(_createReceiptRequestDto))
+            .ReturnsAsync(null as ResponseDto<ReceiptResponseDto>);
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(_createReceiptRequestDto.CompanyId, c => c.Stocks, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
+
         MapperMock
-            .Setup(m => m.Map<ReceiptResponseDto>(TestReceipt))
-            .Returns(_receiptResponseDto);
+           .Setup(m => m.Map<Receipt>(_createReceiptRequestDto))
+           .Returns(TestReceipt);
+
+        TestReceipt.CreatedAt = DateTime.UtcNow;
+
+        StockTransDomainServiceMock
+            .Setup(s => s.CreateStockTransAsync(It.IsAny<StockTransModel>()))!
+            .ReturnsAsync(TestStockTrans);
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Receipt>().CreateAsync(TestReceipt))
+            .ReturnsAsync(TestReceipt);
+
+        ActTransDomainServiceMock
+           .Setup(s => s.CreateActTransAsync(It.IsAny<ActTransModel>()))!
+           .ReturnsAsync(TestActTrans);
+
+        MapperMock
+           .Setup(m => m.Map<ReceiptResponseDto>(TestReceipt))
+           .Returns(_receiptResponseDto);
 
         // Act
         var result = await _receiptService.CreateReceiptAsync(_createReceiptRequestDto);
@@ -246,6 +379,7 @@ public class ReceiptServiceTests : ServiceTestBase
         // Assert
         result.Should().BeEquivalentTo(ResponseDto<ReceiptResponseDto>.Success(_receiptResponseDto, 201));
     }
+
 
     // Delete Receipt Tests
     [Fact]
@@ -281,6 +415,7 @@ public class ReceiptServiceTests : ServiceTestBase
         // Assert
         result.Should().BeEquivalentTo(ResponseDto<NoContentDto>.Success(204));
     }
+
 
     // Get All Receipts Tests
     [Fact]
@@ -412,5 +547,230 @@ public class ReceiptServiceTests : ServiceTestBase
         result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden));
     }
 
-    // Get Company Receipts By Account Id Tests devam 
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountId_ShouldReturnSuccess_WhenAllStatementsPass()
+    {
+        var testAccount = TestDataFactory.CreateTestAccount(email: "t1@mail", phoneNumber: "3123123");
+        // Arrange
+        TestCompany.Accounts = new List<Account>
+        {
+            testAccount
+        };
+
+        TestReceipt.AccountId = testAccount.Id;
+
+        TestCompany.Receipts = new List<Receipt> { TestReceipt };
+
+        TestCompany.DeletedAt = null;
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
+
+        var responseList = new List<ReceiptResponseDto> { new ReceiptResponseDto() };
+
+        MapperMock
+           .Setup(m => m.Map<IList<ReceiptResponseDto>>(TestCompany.Receipts))
+           .Returns(responseList);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAsync(TestCompany.Id, testAccount.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Success(responseList, StatusCodes.Status200OK));
+    }
+
+
+    //Get Receipts By Company Id Tests
+    [Fact]
+    public async Task GetReceiptsByCompanyId_ShouldReturnNotFound_WhenCompanyNotExist()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(null as Company);
+
+        // Act
+        var result = await _receiptService.GetReceiptsByCompanyIdAsync(TestCompany.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.CompanyNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetReceiptsByCompanyId_ShouldReturnNotFound_WhenCompanyIsDeleted()
+    {
+        // Arrange
+        TestCompany.DeletedAt = DateTime.UtcNow;
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetReceiptsByCompanyIdAsync(TestCompany.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.CompanyNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetReceiptsByCompanyId_ShouldReturnSuccess_WhenAllStatementsPass()
+    {
+        // Arrange
+        var responseList = new List<ReceiptResponseDto> { _receiptResponseDto };
+
+        TestCompany.Receipts = new List<Receipt> { TestReceipt };
+
+        TestCompany.DeletedAt = null;
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
+
+
+        MapperMock
+           .Setup(m => m.Map<IList<ReceiptResponseDto>>(TestCompany.Receipts))
+           .Returns(responseList);
+
+        // Act
+        var result = await _receiptService.GetReceiptsByCompanyIdAsync(TestCompany.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Success(responseList, StatusCodes.Status200OK));
+    }
+
+
+    // Get Company Receipts By Account Id And Stock Id Tests
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnNotFound_WhenCompanyNotExist()
+    {
+        // Arrange
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(null as Company);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.CompanyNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnNotFound_WhenCompanyIsDeleted()
+    {
+        // Arrange
+        TestCompany.DeletedAt = DateTime.UtcNow;
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.CompanyNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnNotFound_WhenAccountListIsEmpty()
+    {
+        // Arrange
+        TestCompany.DeletedAt = null;
+        TestCompany.Accounts = new List<Account>();
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts, c => c.Stocks))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.AccountNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnRestrictedAccess_WhenAcountNotInCompanyAccountsList()
+    {
+        // Arrange
+        TestCompany.DeletedAt = null;
+        TestCompany.Accounts = new List<Account> { TestDataFactory.CreateTestAccount() };
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts, c => c.Stocks))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnNotFound_WhenStockListIsEmpty()
+    {
+        // Arrange
+        TestCompany.DeletedAt = null;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock>();
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts, c => c.Stocks))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.StockNotFound404, StatusCodes.Status404NotFound));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnRestrictedAccess_WhenStockNotInCompanyStocksList()
+    {
+        // Arrange
+        TestCompany.DeletedAt = null;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestDataFactory.CreateTestStock() };
+
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts, c => c.Stocks))
+            .ReturnsAsync(TestCompany);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Fail(ErrorMessageService.RestrictedAccess403, StatusCodes.Status403Forbidden));
+    }
+
+    [Fact]
+    public async Task GetCompanyReceiptsByAccountIdAndStockId_ShouldReturnSuccess_WhenAllStatementsPass()
+    {
+        // Arrange
+        var responseList = new List<ReceiptResponseDto> { _receiptResponseDto };
+        var receiptList = new List<Receipt> { TestReceipt };
+
+        TestCompany.DeletedAt = null;
+        TestCompany.Accounts = new List<Account> { TestAccount };
+        TestCompany.Stocks = new List<Stock> { TestStock };
+        TestCompany.Receipts = new List<Receipt> { TestReceipt };
+
+        TestReceipt.AccountId = TestAccount.Id;
+        TestReceipt.StockId = TestStock.Id;
+        
+        UnitOfWorkMock
+            .Setup(u => u.GetGenericRepository<Company>().GetByIdAsync(TestCompany.Id, c => c.Receipts, c => c.Accounts, c => c.Stocks))
+            .ReturnsAsync(TestCompany);
+
+        MapperMock
+           .Setup(m => m.Map<IList<ReceiptResponseDto>>(receiptList))
+           .Returns(responseList);
+
+        // Act
+        var result = await _receiptService.GetCompanyReceiptsByAccountIdAndStockIdAsync(TestCompany.Id, TestAccount.Id, TestStock.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(ResponseDto<IList<ReceiptResponseDto>>.Success(responseList, StatusCodes.Status200OK));
+    }
 }

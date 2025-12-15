@@ -4,5 +4,5 @@ namespace StockAccountDomain.Respositories;
 
 public interface IStockTransRepository
 {
-        Task<StockTrans> CreateStockTransAsync(StockTrans stockTrans);
+    Task<StockTrans> CreateStockTransAsync(StockTrans stockTrans);
 }

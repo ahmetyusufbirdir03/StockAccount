@@ -23,6 +23,7 @@ public static class Registration
         services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
         services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
         services.AddScoped(typeof(IStockTransRepository), typeof(StockTransRepository));
+        services.AddScoped(typeof(IActTransRepository), typeof(ActTransRepository));
         services.AddHttpContextAccessor();
 
         services.AddDataProtection();

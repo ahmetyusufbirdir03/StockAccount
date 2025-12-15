@@ -49,8 +49,9 @@ public static class Registration
         services.AddScoped<IStockService, StockService>();
         services.AddScoped<IStockTransService, StockTransService>();
         services.AddScoped<IStockTransDomainService, StockTransDomainService>();
+        services.AddScoped<IActTransDomainService, ActTransDomainService>();
         services.AddScoped<IAccountService, AccountService>();
-
+        services.AddScoped<IReceiptService, ReceiptService>();
 
 
     }
